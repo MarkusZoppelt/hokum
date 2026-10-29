@@ -26,17 +26,18 @@
             inherit (crate) version;
             src = ./.;
 
-            # Update with Rune's rev in Cargo.toml.
+            # Rune is a git dependency pinned by rev in Cargo.lock, so no hash to keep in step.
             cargoLock = {
               lockFile = ./Cargo.lock;
-              outputHashes."rune-0.0.1" = "sha256-dRdOFNV1yH/zAi2nO8GewHyXz+3oquAfZb2aQ30akhE=";
+              allowBuiltinFetchGit = true;
             };
 
             nativeBuildInputs = with pkgs; [
               pkg-config
               makeWrapper
+              rustPlatform.bindgenHook
             ];
-            buildInputs = libs;
+            buildInputs = libs ++ [ pkgs.pipewire ];
 
             postInstall = ''
               substituteInPlace packaging/hokum.service \
