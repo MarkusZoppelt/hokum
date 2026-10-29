@@ -41,12 +41,26 @@ instead, and stop another daemon (mako, dunst, swaync) holding the name:
 systemctl --user enable --now hokum.service
 ```
 
-Some desktop shells are the notification server themselves rather than a separate daemon
-(Omarchy's, and shells like it), and the unit can't stop them: turn off the shell's own
-notifications first. On Omarchy, see [docs/omarchy.md](docs/omarchy.md).
-
 The first time it runs, Hokum shows one welcome card of its own with a button into Settings. It
 remembers that in `~/.local/state/hokum/welcomed`.
+
+### Desktops
+
+Hokum runs on compositors with layer-shell: niri, sway, Hyprland, river and others, and KDE
+Plasma. It doesn't run on GNOME, which has no layer-shell to draw cards with; there it says so
+and exits.
+
+Some desktop shells are the notification server themselves rather than a separate daemon, and
+they never let another one take the name, `--replace` included: turn off the shell's own
+notifications first, then start Hokum.
+
+- **KDE Plasma:** System Tray settings → Entries → Notifications: Disabled (or remove the
+  Notifications widget), then `systemctl --user enable --now hokum.service`. If Plasma still
+  holds the name, log out and back in.
+- **Omarchy:** see [docs/omarchy.md](docs/omarchy.md).
+
+When a shell keeps the name, Hokum says which one and what to do, and exits with status 78,
+which `hokum.service` doesn't restart on.
 
 ## Use
 

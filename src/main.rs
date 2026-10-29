@@ -24,6 +24,7 @@ mod bus;
 mod card;
 mod cards;
 mod config;
+mod desktop;
 mod icons;
 mod script;
 mod settings;
@@ -41,6 +42,7 @@ const HELP: &str = "usage: hokum [service [--replace] | check [path] | dismiss |
   hokum                  show the settings window (starts Hokum if needed)
   hokum service          run Hokum in the background (what hokum.service starts)
     --replace            take org.freedesktop.Notifications from another daemon
+                         (desktop shells like GNOME's and Plasma's don't allow it)
   hokum check [path]     load config.kdl (or a theme or config file) as Hokum would and
                          print its problems; exits non-zero if there are any
   hokum dismiss [--all]  close the newest card, or every card
@@ -87,6 +89,15 @@ fn main() {
     }
 }
 
+/// Says why Hokum can't run (as a notification too when it was launched from a menu) and quits.
+fn refuse(open: bool, text: &str, code: i32) -> ! {
+    eprintln!("hokum: {text}");
+    if open {
+        bus::tell(text);
+    }
+    std::process::exit(code);
+}
+
 /// `hokum`: show the running service's window. D-Bus activation starts the service when no
 /// daemon owns the name; when another one does, start Hokum's unit (which stops it) and ask
 /// again; with no unit, become the service here.
@@ -119,6 +130,9 @@ fn launch() {
 /// the bus. The first run starts with a welcome card, queued before the bus so a notification
 /// that started Hokum lands above it.
 fn run(open: bool, replace: bool) {
+    if desktop::layer_shell() == Some(false) {
+        refuse(open, &desktop::no_layer_shell(), desktop::UNSUPPORTED);
+    }
     rune::set_app_id("hokum");
     update::exe();
     let welcome = welcome::due();
@@ -156,11 +170,14 @@ fn run(open: bool, replace: bool) {
             std::process::exit(1);
         }
     };
-    if let settings::Daemon::Other(owner) = &daemon
-        && !open
-    {
-        eprintln!("hokum: {owner} owns org.freedesktop.Notifications; pass --replace to take it");
-        std::process::exit(1);
+    if let settings::Daemon::Other(owner) = &daemon {
+        let shell = desktop::shell(owner, &bus::owner_comm(&bus));
+        // A launched Hokum shows its window beside another daemon, but not beside a shell it
+        // can never take the name from.
+        if !open || shell.is_some() {
+            let (text, code) = desktop::refusal(owner, shell, replace);
+            refuse(open, &text, code);
+        }
     }
     if welcome {
         welcome::done();
