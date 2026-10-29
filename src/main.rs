@@ -33,6 +33,7 @@ mod cards;
 mod clock;
 mod config;
 mod desktop;
+mod glyph;
 mod icons;
 mod integrations;
 mod modules;
