@@ -103,7 +103,7 @@ later, says so in its section and leaves the rest running.
 
 ### Modules
 
-Sound, Bluetooth and Brightness are on unless `config.kdl` turns them off; the end of each section's
+Sound and Bluetooth are on unless `config.kdl` turns them off; the end of each section's
 advanced pane has a button for it too. With both off there's no tray icon.
 
 ```kdl
@@ -117,9 +117,9 @@ modules {
 
 When the default output's volume or mute changes from outside Hokum (volume keys, `wpctl`, an
 app), one Volume card shows the level and updates in place; it shows through Do not disturb.
-When a paired Bluetooth device connects, a card says so with its battery, and one more warns once
+A Brightness card does the same when the screen's backlight changes. When a paired Bluetooth device connects, a card says so with its battery, and one more warns once
 when a device's battery drops below 20 % (again only after it's been back above 30 %). Turn them
-off with `osd #false` and `bluetooth-notifications #false` in `modules`.
+off with `osd #false`, `brightness #false` and `bluetooth-notifications #false` in `modules`.
 
 ### Bluetooth pairing
 
